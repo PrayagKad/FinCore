@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Finance Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0c10;
+    --surface:   #111318;
+    --surface2:  #181b22;
+    --border:    #22262f;
+    --accent:    #00e5a0;
+    --accent2:   #5b8fff;
+    --danger:    #ff4f6a;
+    --warn:      #ffb340;
+    --text:      #e8eaf0;
+    --muted:     #5a6175;
+    --mono:      'DM Mono', monospace;
+    --sans:      'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    width: 220px;
+    min-height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .logo-title {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  nav { flex: 1; padding: 16px 0; }
+  .nav-section { padding: 8px 24px 4px; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(0,229,160,0.06); }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  #user-badge {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  #user-name { font-weight: 600; color: var(--text); font-size: 13px; }
+  #user-role {
+    display: inline-block; font-family: var(--mono);
+    font-size: 10px; padding: 2px 6px;
+    border-radius: 4px; margin-top: 4px;
+    background: rgba(0,229,160,0.15); color: var(--accent);
+  }
+  #user-role.ADMIN   { background: rgba(255,79,106,0.15); color: var(--danger); }
+  #user-role.ANALYST { background: rgba(91,143,255,0.15); color: var(--accent2); }
+
+  /* ── Main ── */
+  #main {
+    margin-left: 220px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  #topbar {
+    height: 60px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 50;
+  }
+  #page-title { font-size: 16px; font-weight: 700; }
+
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #00ffb3; }
+  .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: rgba(255,79,106,0.15); color: var(--danger); border: 1px solid rgba(255,79,106,0.3); }
+  .btn-danger:hover { background: rgba(255,79,106,0.25); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+  #content { padding: 32px; flex: 1; }
+
+  /* ── Login screen ── */
+  #login-screen {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 380px;
+  }
+  .login-logo { margin-bottom: 32px; }
+  .login-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: block; }
+  .login-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.15s;
+  }
+  .login-input:focus { border-color: var(--accent); }
+  .login-btn { width: 100%; padding: 14px; font-size: 15px; margin-top: 8px; border-radius: 10px; }
+  .login-error { color: var(--danger); font-size: 13px; margin-top: 12px; text-align: center; min-height: 20px; font-family: var(--mono); }
+  .demo-users { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .demo-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .demo-chip {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-family: var(--mono);
+    cursor: pointer;
+    margin: 3px;
+    transition: all 0.15s;
+  }
+  .demo-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Stats cards ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.income::before { background: var(--accent); }
+  .stat-card.expense::before { background: var(--danger); }
+  .stat-card.net::before { background: var(--accent2); }
+  .stat-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .stat-value { font-size: 28px; font-weight: 800; font-family: var(--mono); }
+  .stat-value.income  { color: var(--accent); }
+  .stat-value.expense { color: var(--danger); }
+  .stat-value.net     { color: var(--accent2); }
+
+  /* ── Tables ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-title { font-size: 14px; font-weight: 700; }
+  .card-body { padding: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left;
+    padding: 12px 20px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  td { padding: 14px 20px; vertical-align: middle; }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-weight: 500;
+  }
+  .badge-income  { background: rgba(0,229,160,0.15); color: var(--accent); }
+  .badge-expense { background: rgba(255,79,106,0.15); color: var(--danger); }
+  .badge-admin   { background: rgba(255,79,106,0.15); color: var(--danger); }
+  .badge-analyst { background: rgba(91,143,255,0.15); color: var(--accent2); }
+  .badge-viewer  { background: rgba(255,179,64,0.12); color: var(--warn); }
+  .badge-active  { background: rgba(0,229,160,0.12); color: var(--accent); }
+  .badge-inactive{ background: rgba(90,97,117,0.2);  color: var(--muted); }
+
+  .amount { font-family: var(--mono); font-weight: 500; }
+  .amount.income  { color: var(--accent); }
+  .amount.expense { color: var(--danger); }
+
+  /* ── Filters bar ── */
+  .filters {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    align-items: flex-end;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 5px; }
+  .filter-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .filter-input, .filter-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 7px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .filter-input:focus, .filter-select:focus { border-color: var(--accent); }
+  .filter-select option { background: var(--surface2); }
+
+  /* ── Pagination ── */
+  .pagination {
+    display: flex; align-items: center; gap: 8px; justify-content: flex-end;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .page-info { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  .page-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-size: 13px; padding: 6px 12px;
+    border-radius: 6px; cursor: pointer; transition: all 0.15s;
+    font-family: var(--sans); font-weight: 600;
+  }
+  .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .page-btn:disabled { opacity: 0.35; cursor: default; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 440px;
+    transform: translateY(12px);
+    transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 24px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+  .form-select option { background: var(--surface2); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .form-error { color: var(--danger); font-size: 12px; margin-top: 8px; font-family: var(--mono); min-height: 16px; }
+
+  /* ── Chart ── */
+  .chart-container { padding: 20px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 140px; }
+  .chart-month { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; }
+  .chart-month-bars { display: flex; gap: 3px; align-items: flex-end; flex: 1; width: 100%; }
+  .chart-bar {
+    flex: 1; border-radius: 4px 4px 0 0;
+    min-height: 3px;
+    transition: opacity 0.2s;
+    position: relative;
+    cursor: default;
+  }
+  .chart-bar:hover { opacity: 0.8; }
+  .chart-bar.income-bar  { background: var(--accent); }
+  .chart-bar.expense-bar { background: var(--danger); }
+  .chart-month-label { font-size: 10px; font-family: var(--mono); color: var(--muted); margin-top: 8px; }
+  .chart-legend { display: flex; gap: 16px; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* ── Category list ── */
+  .category-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+  }
+  .category-row:last-child { border-bottom: none; }
+  .category-name { font-weight: 600; font-size: 14px; }
+  .category-bar-wrap { flex: 1; margin: 0 20px; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .category-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 13px;
+    font-family: var(--mono);
+    z-index: 9999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.25s ease;
+    max-width: 320px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: var(--accent); color: var(--accent); }
+  #toast.error   { border-color: var(--danger); color: var(--danger); }
+
+  /* ── Empty / loading ── */
+  .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+  .empty-icon { font-size: 32px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Hidden ── */
+  .hidden { display: none !important; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Access denied ── */
+  .access-denied {
+    text-align: center; padding: 60px 20px;
+    color: var(--muted);
+  }
+  .access-denied-icon { font-size: 40px; margin-bottom: 16px; }
+  .access-denied-text { font-size: 15px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-mark">Finance</div>
+      <div class="logo-title" style="font-size:26px;">Dashboard</div>
+    </div>
+    <label class="login-label">Email</label>
+    <input id="login-email" class="login-input" type="email" placeholder="admin@finance.com" autocomplete="off"/>
+    <label class="login-label">Password</label>
+    <input id="login-password" class="login-input" type="password" placeholder="••••••••"/>
+    <button class="btn btn-primary login-btn" onclick="doLogin()">Sign In</button>
+    <div id="login-error" class="login-error"></div>
+    <div class="demo-users">
+      <div class="demo-label">Quick login</div>
+      <span class="demo-chip" onclick="fillDemo('admin@finance.com','admin123')">Admin</span>
+      <span class="demo-chip" onclick="fillDemo('analyst@finance.com','analyst123')">Analyst</span>
+      <span class="demo-chip" onclick="fillDemo('viewer@finance.com','viewer123')">Viewer</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════ -->
+<div id="sidebar">
+  <div class="logo">
+    <div class="logo-mark">Finance OS</div>
+    <div class="logo-title">Dashboard</div>
+  </div>
+  <nav>
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" onclick="navigate('overview')">
+      <span class="nav-icon">◈</span> Overview
+    </div>
+    <div class="nav-item" onclick="navigate('transactions')">
+      <span class="nav-icon">↕</span> Transactions
+    </div>
+    <div class="nav-section" id="nav-analytics-section">Analytics</div>
+    <div class="nav-item" id="nav-dashboard" onclick="navigate('dashboard')">
+      <span class="nav-icon">▦</span> Analytics
+    </div>
+    <div class="nav-section" id="nav-admin-section">Admin</div>
+    <div class="nav-item" id="nav-users" onclick="navigate('users')">
+      <span class="nav-icon">⊕</span> Users
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div id="user-badge">
+      <span id="user-name">Loading…</span>
+      <span id="user-role" class="">—</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:12px;width:100%" onclick="logout()">Sign Out</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════ -->
+<div id="main">
+  <div id="topbar">
+    <span id="page-title">Overview</span>
+    <div class="topbar-actions">
+      <a href="/swagger-ui/index.html" target="_blank" class="btn btn-ghost btn-sm">API Docs ↗</a>
+      <button id="btn-new-txn" class="btn btn-primary btn-sm hidden" onclick="openTxnModal()">+ New Transaction</button>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- ── PAGE: Overview ── -->
+    <div id="page-overview" class="page active">
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card income">
+          <div class="stat-label">Total Income</div>
+          <div class="stat-value income" id="stat-income">—</div>
+        </div>
+        <div class="stat-card expense">
+          <div class="stat-label">Total Expenses</div>
+          <div class="stat-value expense" id="stat-expense">—</div>
+        </div>
+        <div class="stat-card net">
+          <div class="stat-label">Net Balance</div>
+          <div class="stat-value net" id="stat-net">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recent Activity</span>
+        </div>
+        <div class="card-body">
+          <table>
+            <thead><tr>
+              <th>Date</th><th>Category</th><th>Notes</th><th>Type</th><th>Amount</th>
+            </tr></thead>
+            <tbody id="recent-tbody">
+              <tr><td colspan="5" class="empty"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Transactions ── -->
+    <div id="page-transactions" class="page">
+      <div class="filters">
+        <div class="filter-group">
+          <span class="filter-label">Type</span>
+          <select id="f-type" class="filter-select" onchange="loadTransactions()">
+            <option value="">All</option>
+            <option value="INCOME">Income</option>
+            <option value="EXPENSE">Expense</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Category</span>
+          <input id="f-cat" class="filter-input" placeholder="e.g. Rent" style="width:130px" oninput="debounceLoad()"/>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">From</span>
+          <input id="f-start" class="filter-input" type="date" onchange="loadTransactions()"/>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">To</span>
+          <input id="f-end" class="filter-input" type="date" onchange="loadTransactions()"/>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Transactions</span>
+          <span id="txn-total-label" class="page-info"></span>
+        </div>
+        <div class="card-body">
+          <table>
+            <thead><tr>
+              <th>Date</th><th>Type</th><th>Category</th><th>Notes</th><th>Amount</th><th id="th-actions"></th>
+            </tr></thead>
+            <tbody id="txn-tbody">
+              <tr><td colspan="6" class="empty"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+          <div class="pagination">
+            <span class="page-info" id="page-info-text"></span>
+            <button class="page-btn" id="btn-prev" onclick="changePage(-1)" disabled>← Prev</button>
+            <button class="page-btn" id="btn-next" onclick="changePage(1)">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Analytics / Dashboard ── -->
+    <div id="page-dashboard" class="page">
+      <div id="dashboard-access-denied" class="access-denied hidden">
+        <div class="access-denied-icon">🔒</div>
+        <div class="access-denied-text">Analytics require ANALYST or ADMIN role.</div>
+      </div>
+
+      <div id="dashboard-content">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <span class="card-title">Monthly Trend</span>
+            <div class="chart-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Income</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div>Expense</div>
+            </div>
+          </div>
+          <div class="chart-container">
+            <div class="chart-bars" id="chart-bars">
+              <div class="empty" style="flex:1"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">By Category</span>
+          </div>
+          <div id="category-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Users ── -->
+    <div id="page-users" class="page">
+      <div id="users-access-denied" class="access-denied hidden">
+        <div class="access-denied-icon">🔒</div>
+        <div class="access-denied-text">User management requires ADMIN role.</div>
+      </div>
+      <div id="users-content">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">All Users</span>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead><tr>
+                <th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="6" class="empty"><div class="spinner"></div></td></tr>
+              </tbody>
+            </table>
+            <div class="pagination">
+              <span class="page-info" id="users-page-info"></span>
+              <button class="page-btn" id="users-btn-prev" onclick="changeUsersPage(-1)" disabled>← Prev</button>
+              <button class="page-btn" id="users-btn-next" onclick="changeUsersPage(1)">Next →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ══════════════════════════════════════════
+     TRANSACTION MODAL
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="txn-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">New Transaction</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Amount (₹)</label>
+        <input id="m-amount" class="form-input" type="number" placeholder="0.00" min="0.01" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select id="m-type" class="form-select">
+          <option value="INCOME">INCOME</option>
+          <option value="EXPENSE">EXPENSE</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <input id="m-category" class="form-input" placeholder="e.g. Salary"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input id="m-date" class="form-input" type="date"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <input id="m-notes" class="form-input" placeholder="Optional description"/>
+    </div>
+    <div id="modal-error" class="form-error"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeTxnModal()">Cancel</button>
+      <button class="btn btn-primary" id="modal-save-btn" onclick="saveTxn()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+// Auto-detect API base URL:
+//   - Served by Spring Boot at localhost:8080 → use empty string (same origin)
+//   - Opened as file:// or from a different port → point directly to backend
+const API = (window.location.protocol === 'file:' || window.location.port !== '8080')
+            ? 'http://localhost:8080'
+            : '';
+let token = null;
+let userEmail = null;
+let userRole  = null;
+let currentPage = 0;
+let totalPages  = 1;
+let usersCurrentPage = 0;
+let usersTotalPages  = 1;
+let editingTxnId = null;
+let debounceTimer = null;
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+const fmt = n => '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtDate = d => d ? d.slice(0,10) : '—';
+const monthName = m => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1];
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  setTimeout(() => t.className = '', 2800);
+}
+
+async function apiFetch(path, options={}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  let res;
+  try {
+    res = await fetch(API + path, { ...options, headers });
+  } catch (networkErr) {
+    // "Failed to fetch" — backend is not reachable
+    throw new Error('Cannot reach the server. Is Spring Boot running on port 8080?');
+  }
+  if (res.status === 204) return null;
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
+  return data;
+}
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+function fillDemo(email, pass) {
+  document.getElementById('login-email').value = email;
+  document.getElementById('login-password').value = pass;
+}
+
+async function doLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  document.getElementById('login-error').textContent = '';
+  try {
+    const data = await apiFetch('/api/auth/login', {
+      method:'POST', body: JSON.stringify({email, password})
+    });
+    token     = data.token;
+    userEmail = data.email;
+    userRole  = data.role;
+    onLoggedIn();
+  } catch(e) {
+    document.getElementById('login-error').textContent = e.message;
+  }
+}
+
+function onLoggedIn() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('user-name').textContent = userEmail;
+  const roleEl = document.getElementById('user-role');
+  roleEl.textContent = userRole;
+  roleEl.className = userRole;
+
+  // Show/hide nav items based on role
+  const isAdmin   = userRole === 'ADMIN';
+  const isAnalyst = userRole === 'ANALYST' || isAdmin;
+
+  document.getElementById('nav-admin-section').style.display   = isAdmin   ? '' : 'none';
+  document.getElementById('nav-users').style.display           = isAdmin   ? '' : 'none';
+  document.getElementById('nav-analytics-section').style.display = isAnalyst ? '' : 'none';
+  document.getElementById('nav-dashboard').style.display       = isAnalyst ? '' : 'none';
+  document.getElementById('btn-new-txn').classList.toggle('hidden', !isAdmin);
+
+  navigate('overview');
+}
+
+function logout() {
+  token = null; userEmail = null; userRole = null;
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-password').value = '';
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.querySelector(`.nav-item[onclick="navigate('${page}')"]`)?.classList.add('active');
+
+  const titles = { overview:'Overview', transactions:'Transactions', dashboard:'Analytics', users:'Users' };
+  document.getElementById('page-title').textContent = titles[page] || page;
+
+  const isAdmin = userRole === 'ADMIN';
+  document.getElementById('btn-new-txn').classList.toggle('hidden', !isAdmin || page !== 'transactions');
+
+  if (page === 'overview')      loadOverview();
+  if (page === 'transactions')  { currentPage = 0; loadTransactions(); }
+  if (page === 'dashboard')     loadDashboard();
+  if (page === 'users')         { usersCurrentPage = 0; loadUsers(); }
+}
+
+// ══════════════════════════════════════════
+// OVERVIEW PAGE
+// ══════════════════════════════════════════
+async function loadOverview() {
+  // Recent (all roles)
+  try {
+    const recent = await apiFetch('/api/dashboard/recent');
+    renderRecentTable(recent);
+  } catch(e) { showToast(e.message, 'error'); }
+
+  // Summary (analyst+admin only)
+  if (userRole === 'ANALYST' || userRole === 'ADMIN') {
+    try {
+      const s = await apiFetch('/api/dashboard/summary');
+      document.getElementById('stat-income').textContent  = fmt(s.totalIncome);
+      document.getElementById('stat-expense').textContent = fmt(s.totalExpenses);
+      document.getElementById('stat-net').textContent     = fmt(s.netBalance);
+    } catch(e) {}
+  } else {
+    document.getElementById('stats-grid').innerHTML =
+      `<div class="stat-card" style="grid-column:1/-1"><div class="stat-label" style="text-align:center;padding:12px 0">
+        Summary analytics visible to ANALYST and ADMIN roles only.
+      </div></div>`;
+  }
+}
+
+function renderRecentTable(list) {
+  const tbody = document.getElementById('recent-tbody');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty"><div class="empty-icon">📭</div><div class="empty-text">No transactions yet</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(t => `
+    <tr>
+      <td style="font-family:var(--mono);font-size:12px">${fmtDate(t.date)}</td>
+      <td>${t.category}</td>
+      <td style="color:var(--muted);font-size:12px">${t.notes || '—'}</td>
+      <td><span class="badge badge-${t.type.toLowerCase()}">${t.type}</span></td>
+      <td class="amount ${t.type.toLowerCase()}">${fmt(t.amount)}</td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════
+// TRANSACTIONS PAGE
+// ══════════════════════════════════════════
+function debounceLoad() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(loadTransactions, 400);
+}
+
+function clearFilters() {
+  document.getElementById('f-type').value = '';
+  document.getElementById('f-cat').value  = '';
+  document.getElementById('f-start').value = '';
+  document.getElementById('f-end').value   = '';
+  currentPage = 0;
+  loadTransactions();
+}
+
+async function loadTransactions() {
+  const type  = document.getElementById('f-type').value;
+  const cat   = document.getElementById('f-cat').value.trim();
+  const start = document.getElementById('f-start').value;
+  const end   = document.getElementById('f-end').value;
+
+  let url = `/api/transactions?page=${currentPage}&size=8`;
+  if (type)  url += `&type=${type}`;
+  if (cat)   url += `&category=${encodeURIComponent(cat)}`;
+  if (start) url += `&startDate=${start}`;
+  if (end)   url += `&endDate=${end}`;
+
+  const tbody = document.getElementById('txn-tbody');
+  tbody.innerHTML = `<tr><td colspan="6" class="empty"><div class="spinner"></div></td></tr>`;
+
+  try {
+    const data = await apiFetch(url);
+    totalPages = data.totalPages;
+
+    document.getElementById('txn-total-label').textContent = `${data.totalElements} records`;
+    document.getElementById('page-info-text').textContent  = `Page ${data.page + 1} of ${Math.max(data.totalPages, 1)}`;
+    document.getElementById('btn-prev').disabled = data.page === 0;
+    document.getElementById('btn-next').disabled = data.page >= data.totalPages - 1;
+
+    const isAdmin = userRole === 'ADMIN';
+    document.getElementById('th-actions').textContent = isAdmin ? 'Actions' : '';
+
+    if (!data.content.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="empty"><div class="empty-icon">🔍</div><div class="empty-text">No transactions match filters</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.content.map(t => `
+      <tr>
+        <td style="font-family:var(--mono);font-size:12px">${fmtDate(t.date)}</td>
+        <td><span class="badge badge-${t.type.toLowerCase()}">${t.type}</span></td>
+        <td>${t.category}</td>
+        <td style="color:var(--muted);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes || '—'}</td>
+        <td class="amount ${t.type.toLowerCase()}">${fmt(t.amount)}</td>
+        <td>${isAdmin ? `
+          <button class="btn btn-ghost btn-sm" onclick="openEditModal(${t.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteTxn(${t.id})" style="margin-left:4px">Del</button>
+        ` : ''}</td>
+      </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty" style="color:var(--danger)">${e.message}</td></tr>`;
+  }
+}
+
+function changePage(dir) {
+  currentPage = Math.max(0, Math.min(totalPages - 1, currentPage + dir));
+  loadTransactions();
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD / ANALYTICS PAGE
+// ══════════════════════════════════════════
+async function loadDashboard() {
+  const hasAccess = userRole === 'ANALYST' || userRole === 'ADMIN';
+  document.getElementById('dashboard-access-denied').classList.toggle('hidden', hasAccess);
+  document.getElementById('dashboard-content').classList.toggle('hidden', !hasAccess);
+  if (!hasAccess) return;
+
+  // Monthly trend
+  try {
+    const trend = await apiFetch('/api/dashboard/monthly-trend');
+    renderChart(trend);
+  } catch(e) { showToast('Could not load trend: ' + e.message, 'error'); }
+
+  // By category
+  try {
+    const cats = await apiFetch('/api/dashboard/by-category');
+    renderCategories(cats);
+  } catch(e) {}
+}
+
+function renderChart(trend) {
+  const el = document.getElementById('chart-bars');
+  if (!trend.length) { el.innerHTML = '<div class="empty" style="flex:1">No data yet</div>'; return; }
+
+  const maxVal = Math.max(...trend.map(t => Math.max(Number(t.income), Number(t.expense))), 1);
+
+  el.innerHTML = trend.map(t => {
+    const incH   = Math.round((Number(t.income)  / maxVal) * 120);
+    const expH   = Math.round((Number(t.expense) / maxVal) * 120);
+    return `
+      <div class="chart-month">
+        <div class="chart-month-bars">
+          <div class="chart-bar income-bar"  style="height:${incH}px" title="Income: ${fmt(t.income)}"></div>
+          <div class="chart-bar expense-bar" style="height:${expH}px" title="Expense: ${fmt(t.expense)}"></div>
+        </div>
+        <div class="chart-month-label">${monthName(t.month)}<br><span style="font-size:9px">${t.year}</span></div>
+      </div>`;
+  }).join('');
+}
+
+function renderCategories(cats) {
+  const container = document.getElementById('category-list');
+  if (!cats.length) { container.innerHTML = '<div class="empty">No category data yet</div>'; return; }
+
+  const maxVal = Math.max(...cats.map(c => Number(c.total)), 1);
+
+  container.innerHTML = cats.map(c => {
+    const pct  = Math.round((Number(c.total) / maxVal) * 100);
+    const col  = c.type === 'INCOME' ? 'var(--accent)' : 'var(--danger)';
+    return `
+      <div class="category-row">
+        <span class="category-name">${c.category}</span>
+        <div class="category-bar-wrap">
+          <div class="category-bar-fill" style="width:${pct}%;background:${col}"></div>
+        </div>
+        <span class="badge badge-${c.type.toLowerCase()}" style="margin-right:12px">${c.type}</span>
+        <span class="amount ${c.type.toLowerCase()}">${fmt(c.total)}</span>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// USERS PAGE
+// ══════════════════════════════════════════
+async function loadUsers() {
+  const hasAccess = userRole === 'ADMIN';
+  document.getElementById('users-access-denied').classList.toggle('hidden', hasAccess);
+  document.getElementById('users-content').classList.toggle('hidden', !hasAccess);
+  if (!hasAccess) return;
+
+  const tbody = document.getElementById('users-tbody');
+  tbody.innerHTML = `<tr><td colspan="6" class="empty"><div class="spinner"></div></td></tr>`;
+
+  try {
+    const data = await apiFetch(`/api/users?page=${usersCurrentPage}&size=8`);
+    usersTotalPages = data.totalPages;
+    document.getElementById('users-page-info').textContent = `Page ${data.page + 1} of ${Math.max(data.totalPages, 1)}`;
+    document.getElementById('users-btn-prev').disabled = data.page === 0;
+    document.getElementById('users-btn-next').disabled = data.page >= data.totalPages - 1;
+
+    tbody.innerHTML = data.content.map(u => `
+      <tr>
+        <td style="font-weight:600">${u.name}</td>
+        <td style="font-family:var(--mono);font-size:12px">${u.email}</td>
+        <td><span class="badge badge-${u.role.toLowerCase()}">${u.role}</span></td>
+        <td><span class="badge badge-${u.active ? 'active' : 'inactive'}">${u.active ? 'Active' : 'Inactive'}</span></td>
+        <td style="font-family:var(--mono);font-size:12px">${fmtDate(u.createdAt)}</td>
+        <td>
+          <select class="filter-select" style="font-size:12px;padding:4px 8px" onchange="changeRole(${u.id}, this.value)">
+            ${['VIEWER','ANALYST','ADMIN'].map(r => `<option ${r===u.role?'selected':''}>${r}</option>`).join('')}
+          </select>
+          <button class="btn btn-sm" style="margin-left:6px;background:${u.active?'rgba(255,79,106,0.15)':'rgba(0,229,160,0.12)'};color:${u.active?'var(--danger)':'var(--accent)'};border:1px solid ${u.active?'rgba(255,79,106,0.3)':'rgba(0,229,160,0.3)'}"
+            onclick="toggleStatus(${u.id}, ${u.active})">${u.active ? 'Deactivate' : 'Activate'}</button>
+        </td>
+      </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty" style="color:var(--danger)">${e.message}</td></tr>`;
+  }
+}
+
+function changeUsersPage(dir) {
+  usersCurrentPage = Math.max(0, Math.min(usersTotalPages - 1, usersCurrentPage + dir));
+  loadUsers();
+}
+
+async function changeRole(userId, role) {
+  try {
+    await apiFetch(`/api/users/${userId}/role`, { method:'PUT', body: JSON.stringify({role}) });
+    showToast(`Role updated to ${role}`);
+    loadUsers();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function toggleStatus(userId, currentlyActive) {
+  try {
+    await apiFetch(`/api/users/${userId}/status`, { method:'PUT', body: JSON.stringify({active: !currentlyActive}) });
+    showToast(`User ${currentlyActive ? 'deactivated' : 'activated'}`);
+    loadUsers();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ══════════════════════════════════════════
+// TRANSACTION MODAL
+// ══════════════════════════════════════════
+function openTxnModal() {
+  editingTxnId = null;
+  document.getElementById('modal-title').textContent = 'New Transaction';
+  document.getElementById('modal-save-btn').textContent = 'Create';
+  document.getElementById('m-amount').value   = '';
+  document.getElementById('m-type').value     = 'INCOME';
+  document.getElementById('m-category').value = '';
+  document.getElementById('m-date').value     = new Date().toISOString().slice(0,10);
+  document.getElementById('m-notes').value    = '';
+  document.getElementById('modal-error').textContent = '';
+  document.getElementById('txn-modal').classList.add('open');
+}
+
+async function openEditModal(id) {
+  try {
+    const t = await apiFetch(`/api/transactions/${id}`);
+    editingTxnId = id;
+    document.getElementById('modal-title').textContent = 'Edit Transaction';
+    document.getElementById('modal-save-btn').textContent = 'Update';
+    document.getElementById('m-amount').value   = t.amount;
+    document.getElementById('m-type').value     = t.type;
+    document.getElementById('m-category').value = t.category;
+    document.getElementById('m-date').value     = fmtDate(t.date);
+    document.getElementById('m-notes').value    = t.notes || '';
+    document.getElementById('modal-error').textContent = '';
+    document.getElementById('txn-modal').classList.add('open');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function closeTxnModal() {
+  document.getElementById('txn-modal').classList.remove('open');
+}
+
+async function saveTxn() {
+  const body = {
+    amount:   parseFloat(document.getElementById('m-amount').value),
+    type:     document.getElementById('m-type').value,
+    category: document.getElementById('m-category').value.trim(),
+    date:     document.getElementById('m-date').value,
+    notes:    document.getElementById('m-notes').value.trim() || null,
+  };
+
+  document.getElementById('modal-error').textContent = '';
+
+  if (!body.amount || body.amount <= 0) { document.getElementById('modal-error').textContent = 'Amount must be positive'; return; }
+  if (!body.category)                   { document.getElementById('modal-error').textContent = 'Category is required'; return; }
+  if (!body.date)                       { document.getElementById('modal-error').textContent = 'Date is required'; return; }
+
+  try {
+    if (editingTxnId) {
+      await apiFetch(`/api/transactions/${editingTxnId}`, { method:'PUT', body: JSON.stringify(body) });
+      showToast('Transaction updated');
+    } else {
+      await apiFetch('/api/transactions', { method:'POST', body: JSON.stringify(body) });
+      showToast('Transaction created');
+    }
+    closeTxnModal();
+    loadTransactions();
+    if (document.getElementById('page-overview').classList.contains('active')) loadOverview();
+  } catch(e) {
+    document.getElementById('modal-error').textContent = e.message;
+  }
+}
+
+async function deleteTxn(id) {
+  if (!confirm('Delete this transaction? This action cannot be undone.')) return;
+  try {
+    await apiFetch(`/api/transactions/${id}`, { method:'DELETE' });
+    showToast('Transaction deleted');
+    loadTransactions();
+    if (document.getElementById('page-overview').classList.contains('active')) loadOverview();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// Close modal on overlay click
+document.getElementById('txn-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeTxnModal();
+});
+
+// Enter key on login
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>
