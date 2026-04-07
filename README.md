@@ -16,7 +16,7 @@ A simple, clean Finance Dashboard REST API built with **Java 21**, **Spring Boot
 | Build        | Maven                               |
 | Utilities    | Lombok                              |
 
-**Why H2?** It requires zero setup — the database is created fresh every time the app starts. Ideal for assignments and demos.
+**Why H2?** It requires zero setup — the database is created fresh every time the app starts.
 
 ---
 
@@ -37,13 +37,17 @@ Server starts at: `http://localhost:8080`
 H2 Console (browser): `http://localhost:8080/h2-console`
 - JDBC URL: `jdbc:h2:mem:financedb`
 - Username: `sa`
-- Password: *(leave blank)*
+- Password:
 
 ---
 
 ## Seeded Users
 
 These users are created automatically on first startup:
+
+
+
+Roles added automatically before production as we need to test the roles. to ease it added user and password directly.
 
 | Role    | Email                  | Password     |
 |---------|------------------------|--------------|
@@ -226,6 +230,20 @@ Authorization: Bearer <analyst-token>
 GET /api/transactions?type=EXPENSE&category=Food&page=0&size=5
 Authorization: Bearer <viewer-token>
 ```
+
+---
+
+
+
+---
+Finance dashboard can be integrated into the banking project I have created.
+
+GitHub link: https://github.com/PrayagKad/Distributed-Payment-Engine
+this simulates a real world bank system, that handles transactions from multiple users. Each user can create two type of accounts 
+1.savings account
+2.current account
+these transactions made by multiple users can be used as transactions data required for dashboard.
+
 
 ---
 
